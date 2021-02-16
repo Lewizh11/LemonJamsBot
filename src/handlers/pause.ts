@@ -2,14 +2,21 @@ import { Composer } from 'telegraf';
 import { pause } from '../tgcalls';
 
 export const pauseHandler = Composer.command(['pause', 'resume'], async ctx => {
-    const { chat } = ctx.message;
+	const { chat } = ctx.message;
 
-    if (chat.type !== 'supergroup') {
-        return;
-    }
+	if (chat.type !== 'supergroup') {
+		return;
+	}
 
-    const paused = await pause(chat.id);
-    const message = paused === null ? "There's nothing playing here." : paused ? 'Paused.' : 'Resumed.';
+	const isAdm = await ctx.getChatAdministrators();
+	const found = isAdm.find(adm => adm.user.id === ctx.from?.id);
 
-    await ctx.reply(message);
+	if (found) {
+		const paused = await pause(chat.id);
+		const message = paused === null ? "Nenhuma música tocando.." : paused ? 'Pausada.' : 'Continuando.';
+
+		await ctx.reply(message);
+	} else {
+		await ctx.reply('Somente adms podem usar este bot');
+	}
 });
